@@ -1,0 +1,46 @@
+<div class="container mt-4">
+  <h3>Categories</h3>
+  <form [formGroup]="categoryForm" (ngSubmit)="submitForm()" class="mb-3">
+    <div class="row">
+      <div class="col">
+        <input class="form-control" formControlName="name" placeholder="Category Name">
+      </div>
+      <div class="col">
+        <input class="form-control" formControlName="description" placeholder="Description">
+      </div>
+      <div class="col">
+        <button class="btn btn-primary" type="submit">Save</button>
+      </div>
+    </div>
+  </form>
+
+  <div *ngIf="successMsg" class="alert alert-success mt-2">
+    {{ successMsg }}
+  </div>
+  <div *ngIf="errorMsg" class="alert alert-danger mt-2">
+    {{ errorMsg }}
+  </div>
+
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of categories">
+        <td>{{c.id}}</td>
+        <td>{{c.name}}</td>
+        <td>{{c.description}}</td>
+        <td>
+          <button class="btn btn-sm btn-info" (click)="editCategory(c)">Edit</button>
+          <button class="btn btn-sm btn-danger" (click)="deleteCategory(c.id)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

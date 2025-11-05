@@ -1,0 +1,55 @@
+<div class="container mt-4">
+  <h3>Products</h3>
+
+  <div *ngIf="successMsg" class="alert alert-success mt-2">
+    {{ successMsg }}
+  </div>
+  <div *ngIf="errorMsg" class="alert alert-danger mt-2">
+    {{ errorMsg }}
+  </div>
+
+
+  <form [formGroup]="productForm" (ngSubmit)="submitForm()" class="mb-3">
+    <div class="row">
+      <div class="col">
+        <input class="form-control" formControlName="name" placeholder="Product Name">
+      </div>
+      <div class="col">
+        <input class="form-control" formControlName="price" placeholder="Price">
+      </div>
+      <div class="col">
+        <select class="form-control" formControlName="category_id">
+          <option [ngValue]="null">-- Select Category --</option>
+          <option *ngFor="let c of categories" [value]="c.id">{{c.name}}</option>
+        </select>
+      </div>
+      <div class="col">
+        <button class="btn btn-primary" type="submit">Save</button>
+      </div>
+    </div>
+  </form>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Category</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of products">
+        <td>{{p.id}}</td>
+        <td>{{p.name}}</td>
+        <td>{{p.price}}</td>
+        <td>{{p.category_name}}</td>
+        <td>
+          <button class="btn btn-sm btn-info" (click)="editProduct(p)">Edit</button>
+          <button class="btn btn-sm btn-danger" (click)="deleteProduct(p.id)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,39 @@
+<div class="container mt-4">
+  <h3>Users</h3>
+
+  <div *ngIf="errorMessage" class="error-msg">
+    {{ errorMessage }}
+  </div>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr><th>ID</th><th>Email</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let u of users">
+        <td>{{u.id}}</td>
+        <td>{{u.email}}</td>
+        <td>
+          <button class="btn btn-sm btn-info" (click)="editUser(u)">Edit</button>
+          <button class="btn btn-sm btn-danger" (click)="deleteUser(u.id)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ✏️ Edit form -->
+<form [formGroup]="userForm" (ngSubmit)="updateUser()" *ngIf="userForm.get('id')?.value" class="mt-4">
+  <h5>Edit User</h5>
+
+  <div class="form-group mb-3">
+    <label for="email">Email:</label>
+    <input id="email" formControlName="email" class="form-control" />
+  </div>
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">Update</button>
+    <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+  </div>
+</form>
+
+</div>
