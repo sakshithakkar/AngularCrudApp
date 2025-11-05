@@ -4,6 +4,8 @@ import { ProductService } from '../../services/product.service';
 import { CategoryService } from '../../services/category.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // 👈 For ngModel
+import { HttpEventType } from '@angular/common/http';
+import { ViewChild, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'app-products',
@@ -14,9 +16,14 @@ export class ProductsComponent implements OnInit {
   products: any[] = [];
   categories: any[] = [];
   productForm!: FormGroup;
+  selectedFile: File | null = null;
+  uploadProgress = 0;
 
   successMsg = '';
   errorMsg = '';
+
+  @ViewChild('fileInput') fileInput!: ElementRef;
+
 
   // pagination + sorting + search
   pagination = { total: 0, page: 1, limit: 5, totalPages: 1 };
@@ -27,7 +34,7 @@ export class ProductsComponent implements OnInit {
     private fb: FormBuilder,
     private productService: ProductService,
     private categoryService: CategoryService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.productForm = this.fb.group({
@@ -124,5 +131,39 @@ export class ProductsComponent implements OnInit {
     if (page < 1 || page > this.pagination.totalPages) return;
     this.pagination.page = page;
     this.getProducts();
+  }
+
+  onFileSelected(event: any) {
+    this.selectedFile = event.target.files[0];
+  }
+
+  uploadFile() {
+    if (!this.selectedFile) return;
+
+    const formData = new FormData();
+    formData.append('file', this.selectedFile);
+
+    this.productService.uploadProducts(formData).subscribe({
+      next: (event: any) => {
+        if (event.type === HttpEventType.UploadProgress && event.total) {
+          this.uploadProgress = Math.round((100 * event.loaded) / event.total);
+        } else if (event.type === HttpEventType.Response) {
+          this.showMessage('success', 'Bulk upload completed successfully!');
+          this.uploadProgress = 0;
+          this.getProducts();
+
+          // ✅ Clear file input and selected file
+          this.selectedFile = null;
+          if (this.fileInput) {
+            this.fileInput.nativeElement.value = '';
+          }
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.showMessage('error', 'Upload failed.');
+        this.uploadProgress = 0;
+      }
+    });
   }
 }

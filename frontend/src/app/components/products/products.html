@@ -5,16 +5,23 @@
   <div *ngIf="successMsg" class="alert alert-success mt-2">{{ successMsg }}</div>
   <div *ngIf="errorMsg" class="alert alert-danger mt-2">{{ errorMsg }}</div>
 
+  <div class="mt-3">
+    <input type="file" (change)="onFileSelected($event)" #fileInput class="form-control w-50">
+    <button class="btn btn-primary m-2" (click)="uploadFile()" [disabled]="!selectedFile">Upload CSV</button>
+  </div>
+
+  <div class="progress mt-2" *ngIf="uploadProgress > 0">
+    <div class="progress-bar progress-bar-striped bg-success" role="progressbar" [style.width.%]="uploadProgress">
+      {{ uploadProgress }}%
+    </div>
+  </div>
+
+
   <!-- Search & Sort -->
   <div class="row mb-3">
     <div class="col-md-4">
-      <input
-        type="text"
-        class="form-control"
-        placeholder="Search by product or category"
-        [(ngModel)]="searchTerm"
-        (input)="getProducts()"
-      />
+      <input type="text" class="form-control" placeholder="Search by product or category" [(ngModel)]="searchTerm"
+        (input)="getProducts()" />
     </div>
     <div class="col-md-3">
       <select class="form-select" [(ngModel)]="sortOrder" (change)="getProducts()">
@@ -49,7 +56,6 @@
   <table class="table table-bordered">
     <thead>
       <tr>
-        <th>ID</th>
         <th>Name</th>
         <th>
           Price
@@ -61,7 +67,6 @@
     </thead>
     <tbody>
       <tr *ngFor="let p of products">
-        <td>{{ p.id }}</td>
         <td>{{ p.name }}</td>
         <td>{{ p.price }}</td>
         <td>{{ p.category_name }}</td>
@@ -76,28 +81,17 @@
   <!-- Pagination -->
   <nav *ngIf="pagination.totalPages > 1">
     <ul class="pagination">
-      <li
-        class="page-item"
-        [class.disabled]="pagination.page === 1"
-        (click)="changePage(pagination.page - 1)"
-      >
+      <li class="page-item" [class.disabled]="pagination.page === 1" (click)="changePage(pagination.page - 1)">
         <a class="page-link">Previous</a>
       </li>
 
-      <li
-        class="page-item"
-        *ngFor="let p of [].constructor(pagination.totalPages); let i = index"
-        [class.active]="pagination.page === i + 1"
-        (click)="changePage(i + 1)"
-      >
+      <li class="page-item" *ngFor="let p of [].constructor(pagination.totalPages); let i = index"
+        [class.active]="pagination.page === i + 1" (click)="changePage(i + 1)">
         <a class="page-link">{{ i + 1 }}</a>
       </li>
 
-      <li
-        class="page-item"
-        [class.disabled]="pagination.page === pagination.totalPages"
-        (click)="changePage(pagination.page + 1)"
-      >
+      <li class="page-item" [class.disabled]="pagination.page === pagination.totalPages"
+        (click)="changePage(pagination.page + 1)">
         <a class="page-link">Next</a>
       </li>
     </ul>

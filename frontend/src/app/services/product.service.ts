@@ -24,4 +24,12 @@ export class ProductService {
   deleteProduct(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
+
+  uploadProducts(formData: FormData): Observable<any> {
+  return this.http.post(`${this.apiUrl}/upload`, formData, {
+    reportProgress: true,
+    observe: 'events'
+  });
+}
+
 }

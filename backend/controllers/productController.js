@@ -1,4 +1,11 @@
 const pool = require('../db/connection');
+const express = require('express');
+const multer = require('multer');
+const csv = require('csv-parser');
+const fs = require('fs');
+
+const upload = multer({ dest: 'uploads/' });
+
 
 exports.getAllProducts = async (req, res) => {
   try {
@@ -130,3 +137,34 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.uploadProducts = async (req, res) => {
+ try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const filePath = req.file.path;
+    const products = [];
+
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on("data", (row) => {
+        products.push(row);
+      })
+      .on("end", async () => {
+        const insertPromises = products.map((p) =>
+          pool.query(
+            `INSERT INTO products (name, price, category_id, created_by) VALUES (?, ?, ?, ?)`,
+            [p.name, p.price, p.category_id, req.user.id]
+          )
+        );
+        await Promise.all(insertPromises);
+        fs.unlinkSync(filePath); // clean up file after import
+        res.json({ message: "Products uploaded successfully", count: products.length });
+      });
+  } catch (error) {
+    console.error("Upload Error:", error);
+    res.status(500).json({ message: "Error uploading products" });
+  }
+}

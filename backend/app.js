@@ -16,6 +16,11 @@ app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 
+app.use((req, res, next) => {
+  res.setTimeout(0); // disables timeout entirely
+  next();
+});
+
 // health
 app.get('/health', (req, res) => res.json({ ok: true }));
 
