@@ -1,26 +1,42 @@
 <div class="container mt-4">
   <h3>Products</h3>
 
-  <div *ngIf="successMsg" class="alert alert-success mt-2">
-    {{ successMsg }}
-  </div>
-  <div *ngIf="errorMsg" class="alert alert-danger mt-2">
-    {{ errorMsg }}
+  <!-- Success / Error Messages -->
+  <div *ngIf="successMsg" class="alert alert-success mt-2">{{ successMsg }}</div>
+  <div *ngIf="errorMsg" class="alert alert-danger mt-2">{{ errorMsg }}</div>
+
+  <!-- Search & Sort -->
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search by product or category"
+        [(ngModel)]="searchTerm"
+        (input)="getProducts()"
+      />
+    </div>
+    <div class="col-md-3">
+      <select class="form-select" [(ngModel)]="sortOrder" (change)="getProducts()">
+        <option value="desc">Sort by Price ↓</option>
+        <option value="asc">Sort by Price ↑</option>
+      </select>
+    </div>
   </div>
 
-
+  <!-- Form -->
   <form [formGroup]="productForm" (ngSubmit)="submitForm()" class="mb-3">
     <div class="row">
       <div class="col">
-        <input class="form-control" formControlName="name" placeholder="Product Name">
+        <input class="form-control" formControlName="name" placeholder="Product Name" />
       </div>
       <div class="col">
-        <input class="form-control" formControlName="price" placeholder="Price">
+        <input class="form-control" formControlName="price" placeholder="Price" />
       </div>
       <div class="col">
         <select class="form-control" formControlName="category_id">
           <option [ngValue]="null">-- Select Category --</option>
-          <option *ngFor="let c of categories" [value]="c.id">{{c.name}}</option>
+          <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
         </select>
       </div>
       <div class="col">
@@ -29,22 +45,26 @@
     </div>
   </form>
 
+  <!-- Product Table -->
   <table class="table table-bordered">
     <thead>
       <tr>
         <th>ID</th>
         <th>Name</th>
-        <th>Price</th>
+        <th>
+          Price
+          <button class="btn btn-sm btn-link p-0" (click)="toggleSort()">⇅</button>
+        </th>
         <th>Category</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let p of products">
-        <td>{{p.id}}</td>
-        <td>{{p.name}}</td>
-        <td>{{p.price}}</td>
-        <td>{{p.category_name}}</td>
+        <td>{{ p.id }}</td>
+        <td>{{ p.name }}</td>
+        <td>{{ p.price }}</td>
+        <td>{{ p.category_name }}</td>
         <td>
           <button class="btn btn-sm btn-info" (click)="editProduct(p)">Edit</button>
           <button class="btn btn-sm btn-danger" (click)="deleteProduct(p.id)">Delete</button>
@@ -52,4 +72,34 @@
       </tr>
     </tbody>
   </table>
+
+  <!-- Pagination -->
+  <nav *ngIf="pagination.totalPages > 1">
+    <ul class="pagination">
+      <li
+        class="page-item"
+        [class.disabled]="pagination.page === 1"
+        (click)="changePage(pagination.page - 1)"
+      >
+        <a class="page-link">Previous</a>
+      </li>
+
+      <li
+        class="page-item"
+        *ngFor="let p of [].constructor(pagination.totalPages); let i = index"
+        [class.active]="pagination.page === i + 1"
+        (click)="changePage(i + 1)"
+      >
+        <a class="page-link">{{ i + 1 }}</a>
+      </li>
+
+      <li
+        class="page-item"
+        [class.disabled]="pagination.page === pagination.totalPages"
+        (click)="changePage(pagination.page + 1)"
+      >
+        <a class="page-link">Next</a>
+      </li>
+    </ul>
+  </nav>
 </div>

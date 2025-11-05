@@ -29,7 +29,6 @@ export class NavbarComponent {
 
   ngOnInit() {
     this.authService.user$.subscribe((user : any) => {
-        console.log(user, ' this.user')
       this.user = user;
     });
   }

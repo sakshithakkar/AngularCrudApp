@@ -1,7 +1,7 @@
 {
   "name": "frontend",
-  "version": "1.0.0",
-  "versioncomment": "crud of users, products and categories",
+  "version": "1.0.1",
+  "versioncomment": "Added Product List API Requirements",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

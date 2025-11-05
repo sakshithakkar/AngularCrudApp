@@ -8,8 +8,9 @@ export class ProductService {
 
   constructor(private http: HttpClient) {}
 
-  getProducts(): Observable<any> {
-    return this.http.get(this.apiUrl);
+ getProducts(page = 1, limit = 5, sort = 'desc', search = ''): Observable<any> {
+    const params = { page, limit, sort, search };
+    return this.http.get(this.apiUrl, { params });
   }
 
   createProduct(data: any): Observable<any> {

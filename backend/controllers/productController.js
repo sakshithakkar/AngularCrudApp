@@ -2,19 +2,67 @@ const pool = require('../db/connection');
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT p.id, p.name, p.price, p.category_id, c.name AS category_name,
-             p.created_by, p.created_at, p.updated_at
+    // Extract query params
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'desc',           // 'asc' or 'desc'
+      search = '',             // search term for product or category
+    } = req.query;
+
+    const offset = (page - 1) * limit;
+
+    // Base query
+    let baseQuery = `
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
       JOIN users u ON p.created_by = u.id
-      ORDER BY p.id DESC
-    `);
-    res.json(rows);
+      WHERE 1=1
+    `;
+
+    // Apply search if provided
+    const queryParams = [];
+    if (search) {
+      baseQuery += ` AND (p.name LIKE ? OR c.name LIKE ?)`;
+      queryParams.push(`%${search}%`, `%${search}%`);
+    }
+
+    // Count total records
+    const [countRows] = await pool.query(
+      `SELECT COUNT(*) as total ${baseQuery}`,
+      queryParams
+    );
+    const total = countRows[0].total;
+
+    // Get paginated records
+    const [rows] = await pool.query(
+      `
+      SELECT p.id, p.name, p.price, p.category_id, c.name AS category_name,
+             p.created_by, p.created_at, p.updated_at
+      ${baseQuery}
+      ORDER BY p.price ${sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC'}
+      LIMIT ? OFFSET ?
+      `,
+      [...queryParams, parseInt(limit), parseInt(offset)]
+    );
+
+    // Return paginated response
+    res.json({
+      data: rows,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };
+
 
 exports.createProduct = async (req, res) => {
   try {

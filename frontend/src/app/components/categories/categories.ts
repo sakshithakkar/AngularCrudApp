@@ -64,8 +64,9 @@ export class CategoriesComponent implements OnInit {
           this.categoryForm.reset();
         },
         error: (err) => {
-          this.showMessage('error', 'Failed to update category.');
+          this.showMessage('error', err.error.message || 'Failed to update category.');
           console.error(err);
+          this.categoryForm.reset();
         }
       });
     } else {
@@ -77,7 +78,7 @@ export class CategoriesComponent implements OnInit {
           this.categoryForm.reset();
         },
         error: (err) => {
-          this.showMessage('error', 'Failed to add category.');
+          this.showMessage('error', err.error.message || 'Failed to add category.');
           console.error(err);
         }
       });

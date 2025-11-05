@@ -3,18 +3,25 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ProductService } from '../../services/product.service';
 import { CategoryService } from '../../services/category.service';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // 👈 For ngModel
 
 @Component({
   selector: 'app-products',
   templateUrl: './products.html',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
 })
 export class ProductsComponent implements OnInit {
   products: any[] = [];
   categories: any[] = [];
   productForm!: FormGroup;
-  successMsg: string = '';
-  errorMsg: string = '';
+
+  successMsg = '';
+  errorMsg = '';
+
+  // pagination + sorting + search
+  pagination = { total: 0, page: 1, limit: 5, totalPages: 1 };
+  sortOrder: 'asc' | 'desc' = 'desc';
+  searchTerm: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -27,13 +34,12 @@ export class ProductsComponent implements OnInit {
       id: [null],
       name: [''],
       price: [''],
-      category_id: ['']
+      category_id: [''],
     });
     this.getProducts();
     this.getCategories();
   }
 
-  /** Common function to show messages **/
   showMessage(type: 'success' | 'error', message: string) {
     if (type === 'success') {
       this.successMsg = message;
@@ -42,87 +48,81 @@ export class ProductsComponent implements OnInit {
       this.errorMsg = message;
       this.successMsg = '';
     }
-
     setTimeout(() => {
       this.successMsg = '';
       this.errorMsg = '';
     }, 3000);
   }
 
-  /** Load products **/
   getProducts() {
-    this.productService.getProducts().subscribe({
-      next: (res) => {
-        this.products = res;
-      },
-      error: (err) => {
-        console.error(err);
-        this.showMessage('error', 'Failed to load products.');
-      }
-    });
+    this.productService
+      .getProducts(this.pagination.page, this.pagination.limit, this.sortOrder, this.searchTerm)
+      .subscribe({
+        next: (res) => {
+          this.products = res.data;
+          this.pagination = res.pagination;
+        },
+        error: (err) => {
+          console.error(err);
+          this.showMessage('error', 'Failed to load products.');
+        },
+      });
   }
 
-  /** Load categories for dropdown **/
   getCategories() {
     this.categoryService.getCategories().subscribe({
-      next: (res) => {
-        this.categories = res;
-      },
-      error: (err) => {
-        console.error(err);
-        this.showMessage('error', 'Failed to load categories.');
-      }
+      next: (res) => (this.categories = res),
+      error: (err) => this.showMessage('error', 'Failed to load categories.'),
     });
   }
 
-  /** Create or update product **/
   submitForm() {
     const data = this.productForm.value;
     if (data.id) {
-      // Update
       this.productService.updateProduct(data.id, data).subscribe({
         next: () => {
           this.showMessage('success', 'Product updated successfully!');
           this.getProducts();
           this.productForm.reset();
         },
-        error: (err) => {
-          console.error(err);
-          this.showMessage('error', 'Failed to update product.');
-        }
+        error: (err) =>
+          this.showMessage('error', err.error.message || 'Failed to update product.'),
       });
     } else {
-      // Create
       this.productService.createProduct(data).subscribe({
         next: () => {
           this.showMessage('success', 'Product added successfully!');
           this.getProducts();
           this.productForm.reset();
         },
-        error: (err) => {
-          console.error(err);
-          this.showMessage('error', 'Failed to add product.');
-        }
+        error: (err) =>
+          this.showMessage('error', err.error.message || 'Failed to add product.'),
       });
     }
   }
 
-  /** Edit selected product **/
   editProduct(p: any) {
     this.productForm.patchValue(p);
   }
 
-  /** Delete product **/
   deleteProduct(id: number) {
     this.productService.deleteProduct(id).subscribe({
       next: () => {
         this.showMessage('success', 'Product deleted successfully!');
         this.getProducts();
       },
-      error: (err) => {
-        console.error(err);
-        this.showMessage('error', 'Failed to delete product.');
-      }
+      error: () => this.showMessage('error', 'Failed to delete product.'),
     });
+  }
+
+  toggleSort() {
+    this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+    this.getProducts();
+  }
+
+  changePage(page: number) {
+    if (page < 1 || page > this.pagination.totalPages) return;
+    this.pagination.page = page;
+    this.getProducts();
   }
 }
