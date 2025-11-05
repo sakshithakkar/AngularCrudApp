@@ -22,5 +22,8 @@ router.post('/', verifyToken, productController.createProduct);
 router.put('/:id', verifyToken, productController.updateProduct);
 router.delete('/:id', verifyToken, productController.deleteProduct);
 router.post('/upload', verifyToken,upload.single("file"), productController.uploadProducts);
+router.get('/export/csv', verifyToken, productController.exportProductsCSV);
+router.get('/export/xlsx', verifyToken, productController.exportProductsXLSX);
+
 
 module.exports = router;

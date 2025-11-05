@@ -1,7 +1,7 @@
 {
   "name": "frontend",
-  "version": "1.0.2",
-  "versioncomment": "Added Bulk Upload",
+  "version": "1.0.3",
+  "versioncomment": "Added report Generation",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

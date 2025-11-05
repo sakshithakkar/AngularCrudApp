@@ -6,9 +6,9 @@ import { Observable } from 'rxjs';
 export class ProductService {
   private apiUrl = 'http://localhost:4000/api/products';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
- getProducts(page = 1, limit = 5, sort = 'desc', search = ''): Observable<any> {
+  getProducts(page = 1, limit = 5, sort = 'desc', search = ''): Observable<any> {
     const params = { page, limit, sort, search };
     return this.http.get(this.apiUrl, { params });
   }
@@ -26,10 +26,23 @@ export class ProductService {
   }
 
   uploadProducts(formData: FormData): Observable<any> {
-  return this.http.post(`${this.apiUrl}/upload`, formData, {
-    reportProgress: true,
-    observe: 'events'
-  });
-}
+    return this.http.post(`${this.apiUrl}/upload`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
+
+  downloadCSV() {
+    return this.http.get(`${this.apiUrl}/export/csv`, {
+      responseType: 'blob'
+    });
+  }
+
+  downloadXLSX() {
+    return this.http.get(`${this.apiUrl}/export/xlsx`, {
+      responseType: 'blob'
+    });
+  }
+
 
 }

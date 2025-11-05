@@ -166,4 +166,26 @@ export class ProductsComponent implements OnInit {
       }
     });
   }
+
+  downloadReport(type: 'csv' | 'xlsx') {
+  const serviceCall =
+    type === 'csv' ? this.productService.downloadCSV() : this.productService.downloadXLSX();
+
+  serviceCall.subscribe({
+    next: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = type === 'csv' ? 'products_report.csv' : 'products_report.xlsx';
+      a.click();
+      window.URL.revokeObjectURL(url);
+      this.showMessage('success', `${type.toUpperCase()} report downloaded successfully!`);
+    },
+    error: (err) => {
+      console.error(err);
+      this.showMessage('error', `Failed to download ${type.toUpperCase()} report.`);
+    }
+  });
+}
+
 }

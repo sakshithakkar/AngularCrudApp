@@ -1,10 +1,9 @@
 const pool = require('../db/connection');
-const express = require('express');
-const multer = require('multer');
 const csv = require('csv-parser');
 const fs = require('fs');
-
-const upload = multer({ dest: 'uploads/' });
+const ExcelJS = require('exceljs');
+const { Parser } = require('json2csv');
+const path = require('path');
 
 
 exports.getAllProducts = async (req, res) => {
@@ -139,7 +138,7 @@ exports.deleteProduct = async (req, res) => {
 };
 
 exports.uploadProducts = async (req, res) => {
- try {
+  try {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
@@ -168,3 +167,72 @@ exports.uploadProducts = async (req, res) => {
     res.status(500).json({ message: "Error uploading products" });
   }
 }
+
+exports.exportProductsCSV = async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT p.id, p.name, p.price, c.name AS category_name, p.created_at, p.updated_at
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      ORDER BY p.id DESC
+    `);
+
+    const fields = ['id', 'name', 'price', 'category_name', 'created_at', 'updated_at'];
+    const json2csv = new Parser({ fields });
+    const csv = json2csv.parse(rows);
+
+    // Stream CSV file
+    // Ensure temp directory exists
+    const tempDir = path.join(__dirname, '../temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const filePath = path.join(tempDir, 'products_report.csv');
+    fs.writeFileSync(filePath, csv);
+
+    res.download(filePath, 'products_report.csv', (err) => {
+      if (err) console.error(err);
+      fs.unlinkSync(filePath); // cleanup
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ==============================
+// Export XLSX (streamed)
+// ==============================
+exports.exportProductsXLSX = async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT p.id, p.name, p.price, c.name AS category_name, p.created_at, p.updated_at
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      ORDER BY p.id DESC
+    `);
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Products');
+
+    sheet.columns = [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Name', key: 'name', width: 30 },
+      { header: 'Price', key: 'price', width: 15 },
+      { header: 'Category', key: 'category_name', width: 20 },
+      { header: 'Created At', key: 'created_at', width: 25 },
+      { header: 'Updated At', key: 'updated_at', width: 25 }
+    ];
+
+    rows.forEach(row => sheet.addRow(row));
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=products_report.xlsx');
+
+    // Stream directly
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
